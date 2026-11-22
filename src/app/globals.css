@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
-/* ─── Civic Breathability Palette ─── */
+/* ─── Civic Breathability Palette (WCAG 2.1 AA Compliant) ─── */
 :root {
   --vm-brand: #0F4C5C;          /* Botanical Teal */
-  --vm-brand-deep: #0A2E38;     /* Deep Header */
-  --vm-accent: #D97706;         /* Warm Saffron Amber */
-  --vm-safe: #0D9488;           /* Emerald Sage */
+  --vm-brand-deep: #0A2E38;     /* Deep Teal Header */
+  --vm-accent: #D97706;         /* Warm Saffron Amber CTA */
+  --vm-safe: #0D9488;           /* Safe Emerald Sage */
   --vm-surface: #F0F7F8;        /* Soft Mist Surface */
   --vm-border: #CBE0E4;         /* Mist Border */
-  --vm-page: #FAFDFD;           /* Page Background */
-  --vm-text: #102A33;           /* Dark Body Text */
-  --vm-muted: #476570;          /* Muted Text */
+  --vm-page: #FAFDFD;           /* Clean Page Canvas */
+  --vm-text: #102A33;           /* Dark Teal Body Text */
+  --vm-muted: #476570;          /* Muted Slate Text */
   --vm-white: #FFFFFF;
 
   --background: var(--vm-page);
@@ -38,10 +38,62 @@ body {
   background: var(--vm-page);
   color: var(--vm-text);
   font-family: Arial, Helvetica, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ─── Mobile-First Touch Targets (44px+) ─── */
+button,
+select,
+input[type="text"],
+input[type="time"] {
+  min-height: 44px;
 }
 
 /* ─── WCAG AA Focus Ring ─── */
 *:focus-visible {
   outline: 3px solid var(--vm-accent);
   outline-offset: 2px;
+}
+
+/* ─── Senior-Friendly Large Text Mode (scales ALL body, cards, inputs, buttons >= 18px–20px) ─── */
+.senior-mode,
+.senior-mode * {
+  letter-spacing: 0.015em;
+}
+
+.senior-mode p,
+.senior-mode span,
+.senior-mode li,
+.senior-mode label,
+.senior-mode div:not(:has(* > *)) {
+  font-size: 1.15rem !important; /* ~18.5px - 20px */
+  line-height: 1.65 !important;
+}
+
+.senior-mode input,
+.senior-mode select,
+.senior-mode button {
+  font-size: 1.15rem !important;
+  min-height: 52px !important;
+  font-weight: 600 !important;
+}
+
+.senior-mode h1 {
+  font-size: 2.15rem !important;
+  font-weight: 900 !important;
+}
+
+.senior-mode h2 {
+  font-size: 1.75rem !important;
+  font-weight: 800 !important;
+}
+
+.senior-mode h3 {
+  font-size: 1.45rem !important;
+  font-weight: 800 !important;
+}
+
+.senior-mode h4 {
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
 }

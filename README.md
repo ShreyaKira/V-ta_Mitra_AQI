@@ -1,6 +1,5 @@
 # Vata Mitra (वाता मित्र) — Generative AI Urban Air Quality Assistant
 
-> **Hack2skill PromptWars — Challenge 6 Submission**  
 > An intelligent, accessible, bilingual (English / हिंदी) Urban Air Quality Assistant built for Indian households, powered by live **Open-Meteo CAMS Air Quality**, official **India CPCB National Air Quality Index (NAQI)** mathematics, and **Gemini 2.5 Flash**.
 
 ---

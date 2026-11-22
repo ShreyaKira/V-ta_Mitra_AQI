@@ -67,9 +67,46 @@ export interface LiveAirQualityResult {
   longitude: number;
   sourceName: "Open-Meteo CAMS Air Quality + CPCB NAQI";
   lastUpdatedIso: string;
+  lastUpdatedIst: string;
   usAqi: number;
   cpcb: CpcbNaqiResult;
   hourlyForecast: HourlyForecastPoint[];
+}
+
+export function formatIstTimestamp(date: Date = new Date()): string {
+  try {
+    return (
+      new Intl.DateTimeFormat("en-IN", {
+        timeZone: "Asia/Kolkata",
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      }).format(date) + " IST"
+    );
+  } catch {
+    return date.toLocaleString("en-IN") + " IST";
+  }
+}
+
+export function formatIstTimestampHi(date: Date = new Date()): string {
+  try {
+    return (
+      new Intl.DateTimeFormat("hi-IN", {
+        timeZone: "Asia/Kolkata",
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      }).format(date) + " IST"
+    );
+  } catch {
+    return date.toLocaleString("hi-IN") + " IST";
+  }
 }
 
 export class AirQualityError extends Error {
@@ -289,6 +326,10 @@ const INDIA_PRESETS: Record<string, CityCoord> = {
   bangalore: { lat: 12.9716, lon: 77.5946, name: "Bengaluru" },
   kolkata: { lat: 22.5726, lon: 88.3639, name: "Kolkata" },
   noida: { lat: 28.5355, lon: 77.391, name: "Noida" },
+  durg: { lat: 21.1904, lon: 81.2849, name: "Durg, Chhattisgarh" },
+  bhilai: { lat: 21.2144, lon: 81.3815, name: "Bhilai, Chhattisgarh" },
+  raipur: { lat: 21.2514, lon: 81.6296, name: "Raipur, Chhattisgarh" },
+  korba: { lat: 22.3595, lon: 82.7501, name: "Korba, Chhattisgarh" },
 };
 
 // ──────────────────── TTL Cache ──────────────────────────────
@@ -317,7 +358,7 @@ function setCache(key: string, data: LiveAirQualityResult): void {
 
 // ─────────────────── Input Validation ────────────────────────
 
-const CITY_NAME_REGEX = /^[a-zA-Z\s\-'.]+$/;
+const CITY_NAME_REGEX = /^[a-zA-Z0-9\s\-',.()]+$/;
 
 export function validateCityInput(city: string): string {
   if (city === null || city === undefined || typeof city !== "string") {
@@ -401,27 +442,46 @@ interface GeoResult {
 async function geocodeCity(
   cityQuery: string,
 ): Promise<{ name: string; lat: number; lon: number }> {
+  // Support direct latitude, longitude coordinate queries
+  const coordMatch = cityQuery.match(/^(-?\d+(\.\d+)?)\s*,\s*(-?\d+(\.\d+)?)$/);
+  if (coordMatch) {
+    const lat = parseFloat(coordMatch[1]);
+    const lon = parseFloat(coordMatch[3]);
+    return { name: `Coordinates (${lat.toFixed(2)}, ${lon.toFixed(2)})`, lat, lon };
+  }
+
   // Check presets first
-  const presetKey = cityQuery.toLowerCase();
+  const presetKey = cityQuery.toLowerCase().trim();
   if (INDIA_PRESETS[presetKey]) {
     const p = INDIA_PRESETS[presetKey];
     return { name: p.name, lat: p.lat, lon: p.lon };
   }
 
-  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityQuery)}&count=5&language=en&format=json`;
-
-  const response = await fetchWithTimeout(url);
-
-  if (!response.ok) {
-    throw new AirQualityError(
-      `Geocoding API returned ${response.status}: ${response.statusText}`,
-      "API_ERROR",
-    );
+  const searchNames = [cityQuery];
+  if (cityQuery.includes(",")) {
+    // If "Durg, Chhattisgarh", also allow querying "Durg" as fallback
+    const firstPart = cityQuery.split(",")[0].trim();
+    if (firstPart.length > 0 && !searchNames.includes(firstPart)) {
+      searchNames.push(firstPart);
+    }
   }
 
-  const data = (await response.json()) as { results?: GeoResult[] };
+  let results: GeoResult[] = [];
 
-  if (!data.results || data.results.length === 0) {
+  for (const q of searchNames) {
+    const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=10&language=en&format=json`;
+    const response = await fetchWithTimeout(url);
+
+    if (response.ok) {
+      const data = (await response.json()) as { results?: GeoResult[] };
+      if (data.results && data.results.length > 0) {
+        results = data.results;
+        break;
+      }
+    }
+  }
+
+  if (results.length === 0) {
     throw new AirQualityError(
       `No location found for "${cityQuery}". Please try a different city name.`,
       "GEOCODING_FAILED",
@@ -429,10 +489,17 @@ async function geocodeCity(
   }
 
   // Prioritize Indian results
-  const indiaResults = data.results.filter(
-    (r) => r.country_code === "IN",
-  );
-  const best = indiaResults.length > 0 ? indiaResults[0] : data.results[0];
+  const indiaResults = results.filter((r) => r.country_code === "IN");
+  let best = indiaResults.length > 0 ? indiaResults[0] : results[0];
+
+  // If query mentions state or district, check for matching admin1
+  const lowerQuery = cityQuery.toLowerCase();
+  for (const ir of indiaResults) {
+    if (ir.admin1 && lowerQuery.includes(ir.admin1.toLowerCase())) {
+      best = ir;
+      break;
+    }
+  }
 
   return {
     name: best.admin1 ? `${best.name}, ${best.admin1}` : best.name,
@@ -541,12 +608,14 @@ export async function fetchLiveIndiaAirQuality(
     }
   }
 
+  const fetchDate = new Date();
   const result: LiveAirQualityResult = {
     city: geo.name,
     latitude: geo.lat,
     longitude: geo.lon,
     sourceName: "Open-Meteo CAMS Air Quality + CPCB NAQI",
-    lastUpdatedIso: current.time ?? new Date().toISOString(),
+    lastUpdatedIso: current.time ?? fetchDate.toISOString(),
+    lastUpdatedIst: formatIstTimestamp(fetchDate),
     usAqi: current.us_aqi ?? 0,
     cpcb,
     hourlyForecast,

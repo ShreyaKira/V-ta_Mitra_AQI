@@ -8,6 +8,7 @@
 import { describe, it, expect } from "vitest";
 import {
   generateFallbackAdvice,
+  validateAdviseRequest,
   type AdviseRequest,
 } from "../adviseFallback";
 import { type LiveAirQualityResult } from "../aqi";
@@ -19,6 +20,7 @@ function createMockLiveAQI(overrides: Partial<LiveAirQualityResult> = {}): LiveA
     longitude: 73.8567,
     sourceName: "Open-Meteo CAMS Air Quality + CPCB NAQI",
     lastUpdatedIso: "2026-11-21T14:00:00Z",
+    lastUpdatedIst: "21 Nov 2026, 7:30 pm IST",
     usAqi: 165,
     cpcb: {
       naqi: 245,
@@ -174,5 +176,92 @@ describe("generateFallbackAdvice", () => {
     expect(advice.lowEmissionRoutine.morning).toContain("घर के अंदर");
     expect(advice.impactJustification).toContain("वरिष्ठ नागरिक");
     expect(result.whatIfMetrics.commuteSwitch).toContain("मेट्रो");
+  });
+
+  it("produces shared homePlan with nearby green zone and individual member action cards", () => {
+    const mockAqi = createMockLiveAQI();
+    const req: AdviseRequest = {
+      city: "Durg",
+      language: "en",
+      hasPurifier: true,
+      hasPlants: true,
+      members: [
+        {
+          id: "m-1",
+          name: "Shreya",
+          ageGroup: "adult",
+          activity: "office_college",
+          leaveTime: "08:30",
+          returnTime: "17:30",
+          commuteMode: "two_wheeler",
+          hasAsthmaOrSensitivity: true,
+        },
+      ],
+    };
+
+    const result = generateFallbackAdvice(req, mockAqi, "2:00 PM – 4:00 PM");
+
+    // Shared Home Plan assertions
+    expect(result.homePlan).toBeDefined();
+    expect(result.homePlan.hasPurifier).toBe(true);
+    expect(result.homePlan.hasPlants).toBe(true);
+    expect(result.homePlan.nearbyGreenZone).toBeDefined();
+    expect(result.homePlan.nearbyGreenZone.name).toContain("Maitri Bagh");
+    expect(result.homePlan.ventilationSchedule).toContain("2:00 PM – 4:00 PM");
+
+    // Member Action Card assertions
+    const member = result.memberAdvice[0];
+    expect(member.name).toBe("Shreya");
+    expect(member.scheduleRisk).toContain("08:30");
+    expect(member.commuteTransitSwap).toContain("two-wheeler");
+    expect(member.impactJustification).toContain("bronchial airway inflammation");
+  });
+
+  it("calculates schedule exposure reduction metrics with real-time scores", () => {
+    const mockAqi = createMockLiveAQI();
+    const req: AdviseRequest = {
+      city: "Pune",
+      language: "en",
+      members: [
+        { id: "m-1", name: "Rohan", commuteMode: "bike", leaveTime: "09:00", returnTime: "18:30" },
+      ],
+    };
+
+    const result = generateFallbackAdvice(req, mockAqi, "3:00 PM – 5:00 PM");
+    expect(result.scheduleExposureCalculator).toBeDefined();
+    expect(result.scheduleExposureCalculator.inhalationReductionPct).toBeGreaterThanOrEqual(45);
+    expect(result.scheduleExposureCalculator.currentCommuteExposureScore).toBeGreaterThan(
+      result.scheduleExposureCalculator.optimizedCommuteExposureScore
+    );
+  });
+
+  it("validates request with polite home setup (hasPurifier, hasPlants) and 1 member default", () => {
+    const validated = validateAdviseRequest({
+      city: "Durg, Chhattisgarh",
+      language: "en",
+      hasPurifier: true,
+      hasPlants: true,
+      members: [
+        {
+          id: "mem-1",
+          name: "Shreya",
+          ageGroup: "adult",
+          activity: "office_college",
+          leaveTime: "09:00",
+          returnTime: "18:30",
+          commuteMode: "two_wheeler",
+          mustGoOut: true,
+          hasAsthmaOrSensitivity: true,
+          isSmoker: false,
+        },
+      ],
+    });
+
+    expect(validated.city).toBe("Durg, Chhattisgarh");
+    expect(validated.hasPurifier).toBe(true);
+    expect(validated.hasPlants).toBe(true);
+    expect(validated.members).toHaveLength(1);
+    expect(validated.members[0].name).toBe("Shreya");
+    expect(validated.members[0].hasAsthmaOrSensitivity).toBe(true);
   });
 });

@@ -5,6 +5,8 @@ import { describe, it, expect } from "vitest";
 import {
   calculateCpcbNaqi,
   validateCityInput,
+  formatIstTimestamp,
+  formatIstTimestampHi,
   AirQualityError,
   type PollutantConcentrations,
 } from "../aqi";
@@ -350,5 +352,21 @@ describe("validateCityInput", () => {
       expect(err).toBeInstanceOf(AirQualityError);
       expect((err as AirQualityError).code).toBe("INVALID_INPUT");
     }
+  });
+
+  it("accepts pan-India town and district queries with commas and coordinates", () => {
+    expect(validateCityInput("Durg, Chhattisgarh")).toBe("Durg, Chhattisgarh");
+    expect(validateCityInput("Bhilai, CG")).toBe("Bhilai, CG");
+    expect(validateCityInput("21.1904, 81.2849")).toBe("21.1904, 81.2849");
+  });
+
+  it("formats Indian Standard Time (IST) timestamps correctly in English and Hindi", () => {
+    const fixedDate = new Date("2026-11-22T10:17:00Z"); // 3:47 pm IST
+    const enFormatted = formatIstTimestamp(fixedDate);
+    const hiFormatted = formatIstTimestampHi(fixedDate);
+
+    expect(enFormatted).toContain("IST");
+    expect(enFormatted).toContain("2026");
+    expect(hiFormatted).toContain("IST");
   });
 });

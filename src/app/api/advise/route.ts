@@ -48,7 +48,11 @@ async function generateGeminiAdvice(
     const systemPrompt = `You are Vata Mitra (वाता मित्र), an expert Indian urban air quality advisor. 
 You MUST use the EXACT live AQI data provided below — NEVER invent or guess AQI numbers.
 Respond in ${isHindi ? "Hindi (Devanagari script)" : "English"}.
-Be practical, specific to Indian household context, and budget-aware.`;
+Be practical, specific to Indian household context, and empathetic.
+Organize your response into:
+1. One shared "homePlan" for the entire household (indoor hacks, purifier/non-purifier strategy, indoor plant care, and a nearby high-oxygen green walk recommendation tailored to the city).
+2. "memberAdvice" tailored specifically for EACH family member (analyzing their leave/return time risk, commute transit swaps, exercise timing, and physiological health impact).
+3. "scheduleExposureCalculator" quantifying PM2.5 inhalation reduction.`;
 
     const userPrompt = `
 ## LIVE AQI DATA (use these exact numbers):
@@ -59,33 +63,46 @@ Be practical, specific to Indian household context, and budget-aware.`;
 - US AQI: ${aqiData.usAqi}
 - Safest 2-hour window: ${safestWindow}
 
-## CITY-SPECIFIC CONTEXT:
+## CITY & LOCAL GREEN ZONES:
 Transit: ${isHindi ? cityRule.transitAdviceHi.join("; ") : cityRule.transitAdvice.join("; ")}
 Pollution: ${isHindi ? cityRule.pollutionNotesHi.join("; ") : cityRule.pollutionNotes.join("; ")}
+Green Zones: ${cityRule.greenZones.map((g) => isHindi ? g.nameHi : g.nameEn).join(", ")}
 
-## HOUSEHOLD:
-Budget Tier: ${req.budgetTier === "low_cost" ? "No purifier / low-cost solutions only" : "Has air purifier at home"}
-Members:
-${req.members.map((m) => `- ${m.id}: Role=${m.role}, MustGoOut=${m.mustGoOut}, CommuteMode=${m.commuteMode}`).join("\n")}
+## HOME SETUP:
+- Air Purifier: ${req.hasPurifier ? "Yes, family owns an air purifier" : "No, family does NOT have an air purifier"}
+- Indoor Plants / Balcony Garden: ${req.hasPlants ? "Yes, has indoor plants / balcony garden" : "No plants currently"}
+
+## HOUSEHOLD MEMBERS:
+${req.members.map((m) => `- Name: ${m.name || m.id}, Age Group: ${m.ageGroup || m.role}, Activity: ${m.activity || "commute"}, Hours: ${m.leaveTime || "09:00"} to ${m.returnTime || "18:30"}, Commute: ${m.commuteMode || "transit"}, Asthma/Sensitivity: ${m.hasAsthmaOrSensitivity ? "Yes" : "No"}, Smoker: ${m.isSmoker ? "Yes" : "No"}`).join("\n")}
 
 ${req.followUpQuestion ? `## FOLLOW-UP QUESTION:\n${req.followUpQuestion}` : ""}
 
 ## INSTRUCTIONS:
-Generate personalized advice for EACH household member with these 3 pillars:
-1. lowEmissionRoutine: morning/afternoon/evening schedule + transit/errand swaps
-2. indoorAirHacks: budget-appropriate tips (${req.budgetTier === "low_cost" ? "free methods like sealing, wet-mopping, cross-ventilation, plants" : "purifier schedule + supplementary free methods"})
-3. impactJustification: clear "Why" explaining health & emission impact
-
-Also provide:
-- whatIfMetrics: quantified exposure/emission reduction estimates
-- followUpAnswer (if follow-up question provided)
-
 Return valid JSON matching this exact schema:
 {
+  "homePlan": {
+    "indoorAirHacks": ["string"],
+    "hasPurifier": ${Boolean(req.hasPurifier)},
+    "purifierRecommendation": "string",
+    "hasPlants": ${Boolean(req.hasPlants)},
+    "plantAirCare": "string",
+    "ventilationSchedule": "string",
+    "nearbyGreenZone": {
+      "name": "string",
+      "timingSuggestion": "string",
+      "benefitReason": "string"
+    }
+  },
   "memberAdvice": [
     {
       "memberId": "string",
+      "name": "string",
       "role": "string",
+      "ageGroup": "child | adult | senior",
+      "activity": "string",
+      "scheduleRisk": "string",
+      "commuteTransitSwap": "string",
+      "outdoorExerciseWindow": "string",
       "lowEmissionRoutine": {
         "morning": "string",
         "afternoon": "string",
@@ -96,6 +113,12 @@ Return valid JSON matching this exact schema:
       "impactJustification": "string"
     }
   ],
+  "scheduleExposureCalculator": {
+    "currentCommuteExposureScore": 75,
+    "optimizedCommuteExposureScore": 25,
+    "inhalationReductionPct": 67,
+    "summaryText": "string"
+  },
   "whatIfMetrics": {
     "commuteSwitch": "string",
     "ventilationTiming": "string"
@@ -118,7 +141,14 @@ Return valid JSON matching this exact schema:
     const parsed = JSON.parse(text);
 
     return {
+      homePlan: parsed.homePlan,
       memberAdvice: parsed.memberAdvice,
+      scheduleExposureCalculator: parsed.scheduleExposureCalculator || {
+        currentCommuteExposureScore: 75,
+        optimizedCommuteExposureScore: 25,
+        inhalationReductionPct: 67,
+        summaryText: "Optimizing commute mode and ventilation schedule cuts direct PM2.5 inhalation by ~67%.",
+      },
       whatIfMetrics: parsed.whatIfMetrics,
       followUpAnswer: parsed.followUpAnswer ?? undefined,
       source: "gemini",

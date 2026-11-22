@@ -6,7 +6,7 @@ import { CitySelector } from "@/components/CitySelector";
 import { AqiHeroCard } from "@/components/AqiHeroCard";
 import { HouseholdBuilder } from "@/components/HouseholdBuilder";
 import { AdviceCards } from "@/components/AdviceCards";
-import { WhatIfSimulator } from "@/components/WhatIfSimulator";
+import { ScheduleExposureCalculator } from "@/components/ScheduleExposureCalculator";
 import { EsgFactCard } from "@/components/EsgFactCard";
 import { FollowUpChat } from "@/components/FollowUpChat";
 import { type LiveAirQualityResult } from "@/lib/aqi";
@@ -15,7 +15,7 @@ import {
   type HouseholdMember,
   type AdviseResponse,
 } from "@/lib/adviseFallback";
-import { type Lang, UI_TEXT } from "@/data/i18n";
+import { type Lang } from "@/data/i18n";
 
 export default function Home() {
   const [lang, setLang] = useState<Lang>("en");
@@ -31,14 +31,22 @@ export default function Home() {
     AqiApiResponse["cityComparison"]
   >([]);
 
-  // Household builder state
-  const [budgetTier, setBudgetTier] = useState<"low_cost" | "purifier_owner">(
-    "low_cost"
-  );
+  // Household builder state: Default to 1 member, expandable to 3
+  const [hasPurifier, setHasPurifier] = useState<boolean>(false);
+  const [hasPlants, setHasPlants] = useState<boolean>(true);
   const [members, setMembers] = useState<HouseholdMember[]>([
-    { id: "mem-1", role: "commuter", mustGoOut: true, commuteMode: "car" },
-    { id: "mem-2", role: "child", mustGoOut: true, commuteMode: "bus" },
-    { id: "mem-3", role: "senior", mustGoOut: false, commuteMode: "cycle" },
+    {
+      id: "mem-1",
+      name: "You",
+      ageGroup: "adult",
+      activity: "office_college",
+      leaveTime: "09:00",
+      returnTime: "18:30",
+      commuteMode: "two_wheeler",
+      mustGoOut: true,
+      hasAsthmaOrSensitivity: false,
+      isSmoker: false,
+    },
   ]);
 
   // Advice state
@@ -46,9 +54,7 @@ export default function Home() {
   const [adviceError, setAdviceError] = useState<string | null>(null);
   const [adviceData, setAdviceData] = useState<AdviseResponse | null>(null);
 
-  const t = UI_TEXT[lang];
-
-  // Fetch AQI for a given city
+  // Fetch AQI for a given city or coordinates
   const fetchCityAqi = useCallback(async (targetCity: string) => {
     setAqiLoading(true);
     setAqiError(null);
@@ -74,20 +80,49 @@ export default function Home() {
     }
   }, []);
 
-  // Fetch initial city on mount
+  // On mount: Try browser geolocation auto-detection, fallback gracefully to Delhi
   useEffect(() => {
-    fetchCityAqi("Delhi");
+    if (typeof window !== "undefined" && "geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude.toFixed(4);
+          const lon = pos.coords.longitude.toFixed(4);
+          fetchCityAqi(`${lat},${lon}`);
+        },
+        () => {
+          // Graceful fallback to Delhi if permission denied or unavailable
+          fetchCityAqi("Delhi");
+        },
+        { timeout: 6000 }
+      );
+    } else {
+      fetchCityAqi("Delhi");
+    }
   }, [fetchCityAqi]);
 
   // Handle Household Member modifications
   const handleAddMember = () => {
     if (members.length >= 3) return;
     const newId = `mem-${Date.now()}`;
-    const nextRole: HouseholdMember["role"] =
+    const nextAge: HouseholdMember["ageGroup"] =
       members.length === 1 ? "child" : "senior";
+    const nextActivity: HouseholdMember["activity"] =
+      nextAge === "child" ? "office_college" : "mostly_indoors";
+
     setMembers((prev) => [
       ...prev,
-      { id: newId, role: nextRole, mustGoOut: false, commuteMode: "metro" },
+      {
+        id: newId,
+        name: members.length === 1 ? (lang === "en" ? "Child" : "बच्चा") : (lang === "en" ? "Elder" : "बुज़ुर्ग"),
+        ageGroup: nextAge,
+        activity: nextActivity,
+        leaveTime: nextAge === "child" ? "07:30" : "07:00",
+        returnTime: nextAge === "child" ? "14:00" : "08:30",
+        commuteMode: nextAge === "child" ? "bus" : "walk",
+        mustGoOut: nextAge === "child",
+        hasAsthmaOrSensitivity: false,
+        isSmoker: false,
+      },
     ]);
   };
 
@@ -118,7 +153,9 @@ export default function Home() {
         body: JSON.stringify({
           city,
           language: lang,
-          budgetTier,
+          hasPurifier,
+          hasPlants,
+          budgetTier: hasPurifier ? "purifier_owner" : "low_cost",
           members,
         }),
       });
@@ -150,7 +187,9 @@ export default function Home() {
         body: JSON.stringify({
           city,
           language: lang,
-          budgetTier,
+          hasPurifier,
+          hasPlants,
+          budgetTier: hasPurifier ? "purifier_owner" : "low_cost",
           members,
           followUpQuestion: question,
         }),
@@ -167,7 +206,7 @@ export default function Home() {
   return (
     <div
       className={`min-h-screen flex flex-col bg-vm-page text-vm-text ${
-        seniorMode ? "text-lg" : "text-base"
+        seniorMode ? "senior-mode text-lg" : "text-base"
       }`}
     >
       {/* Top Navbar */}
@@ -214,7 +253,7 @@ export default function Home() {
           />
         )}
 
-        {/* Daily Green Fact */}
+        {/* Daily Clean Air Insight */}
         <EsgFactCard lang={lang} seniorMode={seniorMode} />
 
         {/* Household Action Builder */}
@@ -223,8 +262,10 @@ export default function Home() {
           onAddMember={handleAddMember}
           onRemoveMember={handleRemoveMember}
           onUpdateMember={handleUpdateMember}
-          budgetTier={budgetTier}
-          onUpdateBudgetTier={setBudgetTier}
+          hasPurifier={hasPurifier}
+          onUpdateHasPurifier={setHasPurifier}
+          hasPlants={hasPlants}
+          onUpdateHasPlants={setHasPlants}
           onSubmit={handleGenerateAdvice}
           isLoading={adviceLoading}
           lang={lang}
@@ -247,9 +288,10 @@ export default function Home() {
           />
         )}
 
-        {/* Interactive What-If Simulator */}
+        {/* Daily Schedule & Commute Exposure Check */}
         {aqiData && (
-          <WhatIfSimulator
+          <ScheduleExposureCalculator
+            members={members}
             currentAqi={aqiData.cpcb.naqi}
             safestWindowStr={
               safestWindow
@@ -260,8 +302,9 @@ export default function Home() {
                     lang === "en" ? "en-IN" : "hi-IN",
                     { hour: "2-digit", minute: "2-digit", hour12: true }
                   )}`
-                : "3:00 PM – 5:00 PM"
+                : "2:00 PM – 4:00 PM"
             }
+            scheduleExposureData={adviceData?.scheduleExposureCalculator}
             lang={lang}
             seniorMode={seniorMode}
           />
@@ -276,13 +319,13 @@ export default function Home() {
         />
       </main>
 
-      {/* Accessible Footer */}
+      {/* Standalone Civic Footer */}
       <footer className="border-t border-vm-border bg-vm-white py-6 mt-12 text-center text-xs text-vm-muted space-y-1">
         <p className="font-semibold text-vm-brand">
           Vata Mitra (वाता मित्र) • Generative AI Urban Air Quality Assistant
         </p>
         <p>
-          Built for Hack2skill PromptWars (Challenge 6) • Official CPCB National Air Quality Index Formula • Open-Meteo CAMS Air Quality
+          Official CPCB National Air Quality Index Formula • Open-Meteo CAMS Air Quality
         </p>
       </footer>
     </div>

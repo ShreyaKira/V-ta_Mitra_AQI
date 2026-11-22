@@ -1,23 +1,24 @@
 /**
  * Bilingual UI dictionary — English (en) and Hindi (hi).
+ * Standalone product strings for Vata Mitra (वाता मित्र).
  */
 
 export type Lang = "en" | "hi";
 
 export const UI_TEXT: Record<Lang, Record<string, string>> = {
   en: {
-    // App
+    // App Header
     appTitle: "Vata Mitra (वाता मित्र)",
-    appSubtitle: "Your AI Urban Air Quality Assistant",
+    appSubtitle: "AI Urban Air Quality & Clean Commute Assistant",
     langToggle: "हिंदी",
     seniorMode: "Senior-Friendly Large Text",
 
-    // City selector
-    citySearchPlaceholder: "Search any Indian city...",
-    useMyLocation: "📍 Use My Location",
+    // City Selector
+    citySearchPlaceholder: "Search any Indian city, district, or town (e.g. Durg, Bhilai, Delhi)...",
+    useMyLocation: "Use My Location",
     quickCities: "Quick Select:",
 
-    // AQI Card
+    // Live AQI Hero Card
     liveAqi: "Live Air Quality",
     cpcbNaqi: "CPCB NAQI",
     usEpaAqi: "US EPA AQI",
@@ -26,11 +27,11 @@ export const UI_TEXT: Record<Lang, Record<string, string>> = {
     lastUpdated: "Last Updated",
     rank: "Rank",
     safestWindow: "Safest 2-Hour Outdoor Window",
-    safestWindowDesc: "Best time to open windows or exercise outdoors",
+    safestWindowDesc: "Best time to cross-ventilate or exercise outdoors",
     cityComparison: "Live India City Comparison",
     noForecast: "Forecast data unavailable",
 
-    // Categories
+    // CPCB Categories
     catGood: "Good",
     catSatisfactory: "Satisfactory",
     catModerate: "Moderate",
@@ -38,65 +39,94 @@ export const UI_TEXT: Record<Lang, Record<string, string>> = {
     catVeryPoor: "Very Poor",
     catSevere: "Severe",
 
-    // Household
-    householdTitle: "Household Builder (1 Roof, Up to 3 Members)",
-    addMember: "+ Add Member",
+    // Household Builder
+    householdTitle: "Household & Daily Schedule Builder",
+    householdSubtitle: "Configure up to 3 family members with actual routines and home air setup",
+    addMember: "+ Add Family Member (Up to 3)",
     removeMember: "Remove",
-    memberRole: "Role",
-    roleCommuter: "Commuter",
-    roleChild: "Young Child",
-    roleSenior: "Senior Citizen",
-    roleStudent: "Student",
-    mustGoOut: "Must go out today?",
+    memberName: "Name",
+    ageGroup: "Age Group",
+    ageChild: "Child (0-14 yrs)",
+    ageAdult: "Adult (15-59 yrs)",
+    ageSenior: "Senior Citizen (60+ yrs)",
+    activityLabel: "Daily Schedule & Activity",
+    actOfficeCollege: "Office / College Commute",
+    actOutdoorActive: "Outdoor Runner / Field Work",
+    actMostlyIndoors: "Mostly Indoors / WFH / Homemaker",
+    leaveTime: "Leave Home",
+    returnTime: "Return Home",
+    homeArea: "Home Area (Optional)",
+    workArea: "Work / School Area (Optional)",
+    healthFlags: "Health & Sensitivities (Optional)",
+    asthmaFlag: "Asthma / Breathing Sensitivity",
+    smokerFlag: "Smoker in Household",
+    commuteMode: "Primary Commute Mode",
+    modeTwoWheeler: "Two-Wheeler (Bike / Scooter)",
+    modeCarCab: "Car / Cab",
+    modePublicTransit: "Metro / Train / Electric Bus",
+    modeWalkCycle: "Walk / Bicycle",
+    modeNone: "None (Stay at Home)",
+
+    // Home Setup Questions
+    purifierQuestion: "Do you use an air purifier at home?",
+    plantsQuestion: "Do you have a home garden, balcony, or indoor plants?",
     yes: "Yes",
     no: "No",
-    commuteMode: "Commute Mode",
-    modeMetro: "Metro/Train",
-    modeBus: "Bus",
-    modeCar: "Car/Bike",
-    modeCycle: "Cycle/Walk",
-    modeWfh: "Work from Home",
-    budgetTier: "Budget Tier",
-    budgetLow: "No Purifier / Low-Cost",
-    budgetPurifier: "Purifier Owner",
-    getAdvice: "🌿 Get Personalized Advice",
-    generating: "Generating advice...",
 
-    // Advice pillars
-    lowEmissionRoutine: "🚶 Low-Emission Daily Routine",
-    indoorAirHacks: "🏠 Indoor Air Hacks",
-    impactJustification: "📊 Why This Matters",
-    whatIfMetrics: "🔄 What-If Impact Simulator",
-    followUpTitle: "💬 Ask a Follow-Up Question",
-    followUpPlaceholder: "e.g., What if I switch from car to metro?",
+    // Actions
+    getAdvice: "Get Personalized Household Plan",
+    generating: "Generating verified plan...",
+
+    // Action Cards & Plans
+    sharedHomePlanTitle: "Shared Home & Indoor Air Plan",
+    sharedHomePlanSubtitle: "One clean plan for the entire household to eliminate smoke, dust, and VOCs",
+    indoorAirHacks: "Indoor Air & Ventilation Hacks",
+    purifierGuidance: "Air Purifier Usage Strategy",
+    plantAirCare: "Plants & Natural Oxygen Boosters",
+    nearbyGreenZoneTitle: "Nearby High-Oxygen Green Walk",
+    individualRoutinesTitle: "Personalized Member Action Cards",
+    scheduleRisk: "Commute Risk Analysis",
+    transitSwap: "Recommended Transit Swap",
+    exerciseWindow: "Safest Exercise / Walk Timing",
+    impactJustification: "Why This Matters For Your Health",
+
+    // Schedule & Exposure Calculator
+    scheduleCalculatorTitle: "Daily Schedule & Commute Exposure Check",
+    scheduleCalculatorSubtitle: "Real-time estimated reduction in inhaled PM2.5 based on your actual commute hours",
+    currentScheduleExposure: "Current Commute Exposure",
+    optimizedScheduleExposure: "Optimized Routine Exposure",
+    inhalationReduction: "PM2.5 Inhalation Cut",
+
+    // Follow-up
+    followUpTitle: "Ask a Question",
+    followUpSubtitle: "Ask about your city's live air, vulnerable family members, or safe windows",
+    followUpPlaceholder: "e.g., Can my mother go for a walk in Durg at 7 AM?",
     askFollowUp: "Ask",
-    followUpAnswer: "Follow-Up Answer",
+    followUpAnswer: "Answer",
 
     // ESG Fact
-    esgFactTitle: "🌍 Today's Green Fact",
+    esgFactTitle: "Today's Clean Air Insight",
 
     // Errors
     errorFetchAqi: "Failed to fetch air quality data. Please try again.",
     errorAdvice: "Failed to generate advice. Using rule-based fallback.",
     errorNoCity: "Please select or search for a city first.",
-
-    // Loading
     loading: "Loading...",
   },
 
   hi: {
-    // App
+    // App Header
     appTitle: "वाता मित्र (Vata Mitra)",
-    appSubtitle: "आपका AI शहरी वायु गुणवत्ता सहायक",
+    appSubtitle: "AI शहरी वायु गुणवत्ता व स्वच्छ आवागमन सहायक",
     langToggle: "English",
     seniorMode: "बड़ा टेक्स्ट (बुज़ुर्गों के लिए)",
 
-    // City selector
-    citySearchPlaceholder: "कोई भी भारतीय शहर खोजें...",
-    useMyLocation: "📍 मेरा स्थान उपयोग करें",
+    // City Selector
+    citySearchPlaceholder: "कोई भी भारतीय शहर, जिला या कस्बा खोजें (जैसे दुर्ग, भिलाई, रायपुर, दिल्ली)...",
+    useMyLocation: "मेरा स्थान उपयोग करें",
     quickCities: "त्वरित चयन:",
 
-    // AQI Card
+    // Live AQI Hero Card
     liveAqi: "लाइव वायु गुणवत्ता",
     cpcbNaqi: "CPCB NAQI",
     usEpaAqi: "US EPA AQI",
@@ -105,11 +135,11 @@ export const UI_TEXT: Record<Lang, Record<string, string>> = {
     lastUpdated: "अंतिम अपडेट",
     rank: "रैंक",
     safestWindow: "सबसे सुरक्षित 2-घंटे की बाहरी खिड़की",
-    safestWindowDesc: "खिड़कियां खोलने या बाहर व्यायाम करने का सबसे अच्छा समय",
+    safestWindowDesc: "खिड़कियां खोलने या बाहर व्यायाम करने का सर्वोत्तम समय",
     cityComparison: "लाइव भारत शहर तुलना",
     noForecast: "पूर्वानुमान डेटा अनुपलब्ध",
 
-    // Categories
+    // CPCB Categories
     catGood: "अच्छा",
     catSatisfactory: "संतोषजनक",
     catModerate: "मध्यम",
@@ -117,49 +147,78 @@ export const UI_TEXT: Record<Lang, Record<string, string>> = {
     catVeryPoor: "बहुत खराब",
     catSevere: "गंभीर",
 
-    // Household
-    householdTitle: "घरेलू बिल्डर (1 छत, 3 सदस्य तक)",
-    addMember: "+ सदस्य जोड़ें",
+    // Household Builder
+    householdTitle: "घरेलू व दैनिक दिनचर्या बिल्डर",
+    householdSubtitle: "परिवार के 3 सदस्यों तक की वास्तविक दिनचर्या व घरेलू सेटअप कॉन्फ़िगर करें",
+    addMember: "+ परिवार का सदस्य जोड़ें (अधिकतम 3)",
     removeMember: "हटाएं",
-    memberRole: "भूमिका",
-    roleCommuter: "यात्री",
-    roleChild: "छोटा बच्चा",
-    roleSenior: "वरिष्ठ नागरिक",
-    roleStudent: "छात्र",
-    mustGoOut: "आज बाहर जाना है?",
-    yes: "हां",
-    no: "नहीं",
-    commuteMode: "यात्रा का तरीका",
-    modeMetro: "मेट्रो/ट्रेन",
-    modeBus: "बस",
-    modeCar: "कार/बाइक",
-    modeCycle: "साइकिल/पैदल",
-    modeWfh: "घर से काम",
-    budgetTier: "बजट स्तर",
-    budgetLow: "बिना प्यूरीफायर / कम लागत",
-    budgetPurifier: "प्यूरीफायर मालिक",
-    getAdvice: "🌿 व्यक्तिगत सलाह प्राप्त करें",
-    generating: "सलाह तैयार हो रही है...",
+    memberName: "नाम",
+    ageGroup: "आयु वर्ग",
+    ageChild: "बच्चा (0-14 वर्ष)",
+    ageAdult: "वयस्क (15-59 वर्ष)",
+    ageSenior: "वरिष्ठ नागरिक (60+ वर्ष)",
+    activityLabel: "दैनिक कार्य व दिनचर्या",
+    actOfficeCollege: "कार्यालय / कॉलेज आवागमन",
+    actOutdoorActive: "बाहरी कार्य / दौड़ / खेल",
+    actMostlyIndoors: "अधिकांश समय घर में / WFH",
+    leaveTime: "घर से निकलने का समय",
+    returnTime: "घर लौटने का समय",
+    homeArea: "घर का क्षेत्र (वैकल्पिक)",
+    workArea: "कार्य/स्कूल क्षेत्र (वैकल्पिक)",
+    healthFlags: "स्वास्थ्य संवेदनशीलता (वैकल्पिक)",
+    asthmaFlag: "अस्थमा / सांस लेने में संवेदनशीलता",
+    smokerFlag: "परिवार में धूम्रपान",
+    commuteMode: "प्राथमिक आवागमन का साधन",
+    modeTwoWheeler: "दोपहिया (बाइक / स्कूटर)",
+    modeCarCab: "कार / कैब",
+    modePublicTransit: "मेट्रो / ट्रेन / इलेक्ट्रिक बस",
+    modeWalkCycle: "पैदल / साइकिल",
+    modeNone: "कोई नहीं (घर पर रहें)",
 
-    // Advice pillars
-    lowEmissionRoutine: "🚶 कम-उत्सर्जन दैनिक दिनचर्या",
-    indoorAirHacks: "🏠 इनडोर वायु टिप्स",
-    impactJustification: "📊 यह क्यों मायने रखता है",
-    whatIfMetrics: "🔄 क्या-अगर प्रभाव सिम्युलेटर",
-    followUpTitle: "💬 फॉलो-अप प्रश्न पूछें",
-    followUpPlaceholder: "जैसे, अगर मैं कार से मेट्रो पर स्विच करूं तो?",
+    // Home Setup Questions
+    purifierQuestion: "क्या आप घर पर एयर प्यूरीफायर इस्तेमाल करते हैं?",
+    plantsQuestion: "क्या आपके पास घरेलू बागवानी, बालकनी या इनडोर पौधे हैं?",
+    yes: "हाँ",
+    no: "नहीं",
+
+    // Actions
+    getAdvice: "व्यक्तिगत घरेलू योजना प्राप्त करें",
+    generating: "प्रमाणित योजना तैयार हो रही है...",
+
+    // Action Cards & Plans
+    sharedHomePlanTitle: "सांझा घरेलू व इनडोर वायु योजना",
+    sharedHomePlanSubtitle: "पूरे परिवार के लिए एक स्वच्छ योजना — धूल, धुआं व VOCs से सुरक्षित रहने हेतु",
+    indoorAirHacks: "इनडोर वायु व वेंटिलेशन उपाय",
+    purifierGuidance: "एयर प्यूरीफायर संचालन रणनीति",
+    plantAirCare: "पौधे व प्राकृतिक ऑक्सीजन संवर्धक",
+    nearbyGreenZoneTitle: "समीपस्थ हरित व उच्च-ऑक्सीजन वॉक",
+    individualRoutinesTitle: "व्यक्तिगत सदस्य कार्य कार्ड",
+    scheduleRisk: "आवागमन जोखिम विश्लेषण",
+    transitSwap: "अनुशंसित यात्रा माध्यम बदलाव",
+    exerciseWindow: "व्यायाम व सैर का सबसे सुरक्षित समय",
+    impactJustification: "यह आपके स्वास्थ्य के लिए क्यों महत्वपूर्ण है",
+
+    // Schedule & Exposure Calculator
+    scheduleCalculatorTitle: "दैनिक समय व आवागमन एक्सपोज़र जांच",
+    scheduleCalculatorSubtitle: "आपके वास्तविक यात्रा घंटों के आधार पर PM2.5 सांस में जाने में अनुमानित कमी",
+    currentScheduleExposure: "वर्तमान आवागमन एक्सपोज़र",
+    optimizedScheduleExposure: "अनुकूलित दिनचर्या एक्सपोज़र",
+    inhalationReduction: "PM2.5 एक्सपोज़र में कमी",
+
+    // Follow-up
+    followUpTitle: "प्रश्न पूछें",
+    followUpSubtitle: "अपने शहर की हवा, परिवार के संवेदनशील सदस्यों या सुरक्षित समय के बारे में पूछें",
+    followUpPlaceholder: "जैसे, क्या मेरी माताजी दुर्ग में सुबह 7 बजे सैर पर जा सकती हैं?",
     askFollowUp: "पूछें",
-    followUpAnswer: "फॉलो-अप उत्तर",
+    followUpAnswer: "उत्तर",
 
     // ESG Fact
-    esgFactTitle: "🌍 आज का हरित तथ्य",
+    esgFactTitle: "आज का स्वच्छ वायु विचार",
 
     // Errors
-    errorFetchAqi: "वायु गुणवत्ता डेटा प्राप्त करने में विफल। कृपया पुनः प्रयास करें।",
+    errorFetchAqi: "वायु गुणवत्ता डेटा प्राप्त करने में विफल।",
     errorAdvice: "सलाह बनाने में विफल। नियम-आधारित फ़ॉलबैक का उपयोग।",
-    errorNoCity: "कृपया पहले कोई शहर चुनें या खोजें।",
-
-    // Loading
+    errorNoCity: "कृपया पहले कोई शहर चुनें।",
     loading: "लोड हो रहा है...",
   },
 };
